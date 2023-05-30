@@ -203,12 +203,7 @@ export class Viewer {
   //   "http://127.0.0.1:8887/tilesetGBLF1.glb",
   // ]
   load(x, rootPath, assetMap) {
-    const urls = [
-      "http://127.0.0.1:8887/tilesetGBLF1.glb",
-      "http://127.0.0.1:8887/tilesetGBLF2.glb",
-      "http://127.0.0.1:8887/tilesetGBLF3.glb",
-      "http://127.0.0.1:8887/tilesetGBLF4.glb",
-    ];
+    const urls = ["http://127.0.0.1:8887/mergeGLB4.glb"];
     const promises = urls.map((url) => {
       const x = this.load1(url, "/", {});
       console.log("scene>ddd>>>>>>", x);
