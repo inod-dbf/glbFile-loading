@@ -28,9 +28,11 @@
   "dependencies": {
     "dat.gui": "^0.7.9",
     "gltf-validator": "^2.0.0-dev.3.9",
+    "lodash": "^4.17.21",
     "query-string": "^8.1.0",
     "simple-dropzone": "^0.8.2",
     "three": "^0.151.0",
+    "three-bvh-csg": "^0.0.5",
     "vhtml": "^2.2.0"
   },
   "devDependencies": {
