@@ -378,6 +378,67 @@ export class Viewer {
         this.printGraph(this.content);
     }
 
+    createBrushes(object, sphere) {
+        // render loop (
+        //     check if booleaned array
+        //     -> remove from scene
+        //     -> dispose of geometries
+        //     [group, group, mesh, mesh]
+        //     for(otem of group) {
+        //         item.isMesh -> create brush
+        //         or find children meshes -> brush
+        //         -> list of brushes
+        //     }
+        //     sphere brush
+        //     -> subtract from each mesh brush
+        //     -> add result to scene
+        //     [store in array] -> booleaned array
+        // )
+        const meshObjects = [];
+        console.log("[iw] object::: ---> ", object);
+        object.traverse((obj) => {
+            if (obj.isMesh) {
+                meshObjects.push(obj);
+            }
+        });
+
+        console.log("[iw] meshObjects::::: ---> ", meshObjects);
+        const newObject = new THREE.Object3D();
+        const newObject2 = new THREE.Object3D();
+
+        newObject.add(sphere);
+
+        for (let i = 0; i < meshObjects.length; i++) {
+            const mesh = meshObjects[i];
+            newObject.add(mesh);
+        }
+
+        const csgEvaluator = new Evaluator();
+        console.log("[iw] newObj ---> ", newObject);
+
+        const brushes = newObject.children.map((mesh) => {
+            const originalMaterial = mesh.material;
+            mesh.updateMatrix();
+            const geometry = mesh.geometry.clone();
+            geometry.applyMatrix4(mesh.matrix);
+            // fix: CSG Operations: Attribute `normal` no available on geometry
+            if (!geometry.getAttribute("normal")) {
+                geometry.computeVertexNormals();
+            }
+            return new Brush(geometry, originalMaterial);
+        });
+
+        const result = csgEvaluator.evaluate(
+            brushes[1],
+            brushes[0],
+            SUBTRACTION
+        );
+        console.log("[iw] newObject::::::: ---> ", newObject);
+        // newObject2.add(object);
+        newObject2.add(result);
+        this.scene.add(newObject2);
+    }
+
     setContents(objects, clips) {
         // this.clear();
         let x, y, z;
@@ -464,46 +525,47 @@ export class Viewer {
 
             // Add all meshes to the new 3d object
             const meshObjects = [...object.children];
+            this.createBrushes(object, sphere);
             // for (let i = 0; i < meshObjects.length; i++) {
             //     const mesh = meshObjects[i];
             //     newObject.add(mesh);
             // }
 
-            let result = {};
-            const selectedMeshObject = meshObjects[3];
+            // let result = {};
+            // const selectedMeshObject = meshObjects[3];
 
-            if (selectedMeshObject) {
-                newObject.add(selectedMeshObject);
+            // if (selectedMeshObject) {
+            //     newObject.add(selectedMeshObject);
 
-                const csgEvaluator = new Evaluator();
+            //     const csgEvaluator = new Evaluator();
 
-                const brushes = newObject.children.map((mesh) => {
-                    const originalMaterial = mesh.material;
-                    mesh.updateMatrix();
-                    const geometry = mesh.geometry.clone();
-                    geometry.applyMatrix4(mesh.matrix);
-                    // fix: CSG Operations: Attribute `normal` no available on geometry
-                    if (!geometry.getAttribute("normal")) {
-                        geometry.computeVertexNormals();
-                    }
-                    return new Brush(geometry, originalMaterial);
-                });
+            //     const brushes = newObject.children.map((mesh) => {
+            //         const originalMaterial = mesh.material;
+            //         mesh.updateMatrix();
+            //         const geometry = mesh.geometry.clone();
+            //         geometry.applyMatrix4(mesh.matrix);
+            //         // fix: CSG Operations: Attribute `normal` no available on geometry
+            //         if (!geometry.getAttribute("normal")) {
+            //             geometry.computeVertexNormals();
+            //         }
+            //         return new Brush(geometry, originalMaterial);
+            //     });
 
-                result = csgEvaluator.evaluate(
-                    brushes[1],
-                    brushes[0],
-                    SUBTRACTION
-                );
-                newObject2.add(result);
-                newObject2.add(meshObjects[0]);
-                newObject2.add(meshObjects[1]);
-                newObject2.add(meshObjects[2]);
-                // newObject2.add(meshObjects[3]);
-            } else {
-                console.log("No meshObject found at index 4");
-            }
+            //     result = csgEvaluator.evaluate(
+            //         brushes[1],
+            //         brushes[0],
+            //         SUBTRACTION
+            //     );
+            //     newObject2.add(result);
+            //     newObject2.add(meshObjects[0]);
+            //     newObject2.add(meshObjects[1]);
+            //     newObject2.add(meshObjects[2]);
+            //     // newObject2.add(meshObjects[3]);
+            // } else {
+            //     console.log("No meshObject found at index 4");
+            // }
 
-            this.scene.add(newObject2);
+            // this.scene.add(newObject2);
             // this.scene.add(object);
             this.content = object;
 
