@@ -30,6 +30,7 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { FlyControls } from "three/addons/controls/FlyControls.js";
 
 import { GUI } from "dat.gui";
 
@@ -148,6 +149,16 @@ export class Viewer {
         );
         this.controls.screenSpacePanning = true;
 
+        this.flyControls = new FlyControls(
+            this.defaultCamera,
+            this.renderer.domElement
+        );
+
+        this.flyControls.movementSpeed = 10;
+        // this.flyControls.rollSpeed = 0.1;
+        this.flyControls.autoForward = false;
+        this.flyControls.dragToLook = false;
+
         this.el.appendChild(this.renderer.domElement);
 
         this.cameraCtrl = null;
@@ -174,7 +185,8 @@ export class Viewer {
 
         const dt = (time - this.prevTime) / 1000;
 
-        this.controls.update();
+        // this.controls.update();
+        this.flyControls.update(0.05);
         this.stats.update();
         this.mixer && this.mixer.update(dt);
         this.render();
