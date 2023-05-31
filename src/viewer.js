@@ -378,6 +378,23 @@ export class Viewer {
         this.printGraph(this.content);
     }
 
+    dispose(object, recurive) {
+        if (!object) {
+            return;
+        }
+        if (object.geometry) object.geometry.dispose();
+        if (object.material /* && !object.material.length */) {
+            // console.log(object.material);
+            if (object.material.map) {
+                object.material.map.dispose();
+            }
+            object.material.dispose();
+        }
+        if (recurive) {
+            object.children.forEach((child) => dispose(child, true));
+        }
+    }
+
     createBrushes(object, sphere) {
         // render loop (
         //     check if booleaned array
@@ -394,6 +411,7 @@ export class Viewer {
         //     -> add result to scene
         //     [store in array] -> booleaned array
         // )
+        const originalObj = _.cloneDeep(object);
         const meshObjects = [];
         console.log("[iw] object::: ---> ", object);
         object.traverse((obj) => {
@@ -428,14 +446,17 @@ export class Viewer {
             return new Brush(geometry, originalMaterial);
         });
 
-        const result = csgEvaluator.evaluate(
-            brushes[1],
-            brushes[0],
-            SUBTRACTION
-        );
-        console.log("[iw] newObject::::::: ---> ", newObject);
-        // newObject2.add(object);
-        newObject2.add(result);
+        for (let i = 0; i < brushes.length; i++) {
+            if (i !== 0) {
+                const result = csgEvaluator.evaluate(
+                    brushes[i],
+                    brushes[0],
+                    SUBTRACTION
+                );
+                newObject2.add(result);
+            }
+        }
+
         this.scene.add(newObject2);
     }
 
