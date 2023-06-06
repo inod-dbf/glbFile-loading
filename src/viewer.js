@@ -185,8 +185,8 @@ export class Viewer {
 
         const dt = (time - this.prevTime) / 1000;
 
-        // this.controls.update();
-        this.flyControls.update(0.05);
+        this.controls.update();
+        // this.flyControls.update(0.05);
         this.stats.update();
         this.mixer && this.mixer.update(dt);
         this.render();
@@ -228,7 +228,8 @@ export class Viewer {
     //   "http://127.0.0.1:8887/tilesetGBLF1.glb",
     // ]
     load(x, rootPath, assetMap) {
-        const urls = ["/mergeGLB4.glb"];
+        // const urls = ["/mergeGLB4.glb"];
+        const urls = ["/mergeGLB4.gltf"];
         const promises = urls.map((url) => {
             const x = this.load1(url, "/", {});
             return x;
@@ -411,9 +412,29 @@ export class Viewer {
         //     -> add result to scene
         //     [store in array] -> booleaned array
         // )
-        const originalObj = _.cloneDeep(object);
+        // const originalObj = _.cloneDeep(object);
+        const originalObj = _.cloneDeep(object, (value) => {
+            if (typeof value === "function") {
+                return value;
+            }
+        });
         const meshObjects = [];
         console.log("[iw] object::: ---> ", object);
+        // object.traverse((obj) => {
+        //     if (obj.isMesh) {
+        //         // const csgEvaluator = new Evaluator();
+        //         const originalMaterial = obj.material;
+        //         obj.updateMatrix();
+        //         const geometry = obj.geometry.clone();
+        //         geometry.applyMatrix4(obj.matrix);
+        //         // fix: CSG Operations: Attribute `normal` no available on geometry
+        //         if (!geometry.getAttribute("normal")) {
+        //             geometry.computeVertexNormals();
+        //         }
+        //         return new Brush(geometry, originalMaterial);
+        //         // meshObjects.push(obj);
+        //     }
+        // });
         object.traverse((obj) => {
             if (obj.isMesh) {
                 meshObjects.push(obj);
@@ -424,7 +445,7 @@ export class Viewer {
         const newObject = new THREE.Object3D();
         const newObject2 = new THREE.Object3D();
 
-        newObject.add(sphere);
+        // newObject.add(sphere);
 
         for (let i = 0; i < meshObjects.length; i++) {
             const mesh = meshObjects[i];
@@ -432,7 +453,6 @@ export class Viewer {
         }
 
         const csgEvaluator = new Evaluator();
-        console.log("[iw] newObj ---> ", newObject);
 
         const brushes = newObject.children.map((mesh) => {
             const originalMaterial = mesh.material;
@@ -443,7 +463,9 @@ export class Viewer {
             if (!geometry.getAttribute("normal")) {
                 geometry.computeVertexNormals();
             }
-            return new Brush(geometry, originalMaterial);
+            const brush = new Brush(geometry, originalMaterial);
+
+            return brush;
         });
 
         for (let i = 0; i < brushes.length; i++) {
@@ -457,6 +479,8 @@ export class Viewer {
             }
         }
 
+        console.log("[iw] :::: ---> ", originalObj);
+        console.log("[iw] newObject2:::: ---> ", newObject2);
         this.scene.add(newObject2);
     }
 
@@ -545,49 +569,56 @@ export class Viewer {
             newObject.add(sphere);
 
             // Add all meshes to the new 3d object
-            const meshObjects = [...object.children];
-            this.createBrushes(object, sphere);
+            // const meshObjects = [...object.children];
+            const meshObjects = [...object.children[0].children];
+            console.log("[iw] meshObjects ---> ", meshObjects);
+            // this.createBrushes(object, sphere);
             // for (let i = 0; i < meshObjects.length; i++) {
             //     const mesh = meshObjects[i];
             //     newObject.add(mesh);
             // }
 
-            // let result = {};
+            let result = {};
             // const selectedMeshObject = meshObjects[3];
+            const selectedMeshObject = meshObjects[24].children[1];
+            console.log("[iw] selectedMeshObject ---> ", selectedMeshObject);
 
-            // if (selectedMeshObject) {
-            //     newObject.add(selectedMeshObject);
+            if (selectedMeshObject) {
+                newObject.add(selectedMeshObject);
 
-            //     const csgEvaluator = new Evaluator();
+                const csgEvaluator = new Evaluator();
 
-            //     const brushes = newObject.children.map((mesh) => {
-            //         const originalMaterial = mesh.material;
-            //         mesh.updateMatrix();
-            //         const geometry = mesh.geometry.clone();
-            //         geometry.applyMatrix4(mesh.matrix);
-            //         // fix: CSG Operations: Attribute `normal` no available on geometry
-            //         if (!geometry.getAttribute("normal")) {
-            //             geometry.computeVertexNormals();
-            //         }
-            //         return new Brush(geometry, originalMaterial);
-            //     });
+                const brushes = newObject.children.map((mesh) => {
+                    const originalMaterial = mesh.material;
+                    mesh.updateMatrix();
+                    const geometry = mesh.geometry.clone();
+                    geometry.applyMatrix4(mesh.matrix);
+                    // fix: CSG Operations: Attribute `normal` no available on geometry
+                    if (!geometry.getAttribute("normal")) {
+                        geometry.computeVertexNormals();
+                    }
+                    return new Brush(geometry, originalMaterial);
+                });
 
-            //     result = csgEvaluator.evaluate(
-            //         brushes[1],
-            //         brushes[0],
-            //         SUBTRACTION
-            //     );
-            //     newObject2.add(result);
-            //     newObject2.add(meshObjects[0]);
-            //     newObject2.add(meshObjects[1]);
-            //     newObject2.add(meshObjects[2]);
-            //     // newObject2.add(meshObjects[3]);
-            // } else {
-            //     console.log("No meshObject found at index 4");
-            // }
-
-            // this.scene.add(newObject2);
-            // this.scene.add(object);
+                result = csgEvaluator.evaluate(
+                    brushes[1],
+                    brushes[0],
+                    SUBTRACTION
+                );
+                newObject2.add(result);
+                // newObject2.add(meshObjects[0]);
+                // newObject2.add(meshObjects[1]);
+                // newObject2.add(meshObjects[2]);
+                // newObject2.add(meshObjects[3]);
+            } else {
+                console.log("No meshObject found at index 4");
+            }
+            // let myArray = object.children[0].children;
+            // myArray.splice(24, 4);
+            // object.children[0].children = myArray;
+            // console.log("[iw] myArray ---> ", myArray);
+            this.scene.add(object);
+            console.log("[iw] object ---> ", object);
             this.content = object;
 
             this.state.punctualLights = true;
@@ -615,9 +646,9 @@ export class Viewer {
     }
 
     printGraph(node) {
-        console.group(" <" + node.type + "> " + node.name);
+        // console.group(" <" + node.type + "> " + node.name);
         node.children.forEach((child) => this.printGraph(child));
-        console.groupEnd();
+        // console.groupEnd();
     }
 
     /**
