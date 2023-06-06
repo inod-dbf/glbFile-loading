@@ -31,7 +31,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { FlyControls } from "three/addons/controls/FlyControls.js";
-
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { GUI } from "dat.gui";
 
 import { environments } from "./environments.js";
@@ -559,13 +559,15 @@ export class Viewer {
             const newObject = new THREE.Object3D();
             const newObject2 = new THREE.Object3D();
 
-            const sphereGeometry = new THREE.SphereGeometry(20, 32, 16);
+            const sphereGeometry = new THREE.SphereGeometry(30, 30, 16);
             const material = new THREE.MeshBasicMaterial({
                 transparent: true,
                 opacity: 0,
+                // color: 0xff0000,
             });
             const sphere = new THREE.Mesh(sphereGeometry, material);
-            sphere.position.x += -30;
+            sphere.position.x += -14;
+            // sphere.position.y += ;
             newObject.add(sphere);
 
             // Add all meshes to the new 3d object
@@ -580,8 +582,7 @@ export class Viewer {
 
             let result = {};
             // const selectedMeshObject = meshObjects[3];
-            const selectedMeshObject = meshObjects[24].children[1];
-            console.log("[iw] selectedMeshObject ---> ", selectedMeshObject);
+            const selectedMeshObject = meshObjects[25].clone();
 
             if (selectedMeshObject) {
                 newObject.add(selectedMeshObject);
@@ -606,7 +607,10 @@ export class Viewer {
                     SUBTRACTION
                 );
                 newObject2.add(result);
-                // newObject2.add(meshObjects[0]);
+                let myArray = object.children[0].children;
+                myArray.splice(25, 1);
+                object.children[0].children = myArray;
+                newObject2.add(object);
                 // newObject2.add(meshObjects[1]);
                 // newObject2.add(meshObjects[2]);
                 // newObject2.add(meshObjects[3]);
@@ -617,7 +621,7 @@ export class Viewer {
             // myArray.splice(24, 4);
             // object.children[0].children = myArray;
             // console.log("[iw] myArray ---> ", myArray);
-            this.scene.add(object);
+            this.scene.add(newObject2);
             console.log("[iw] object ---> ", object);
             this.content = object;
 
